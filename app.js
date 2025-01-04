@@ -8,8 +8,7 @@ require('./mongoose-db');
 
 var st = require('st');
 const rateLimit = require('express-rate-limit')
-// const limit = require('express-limit').limit;
-// var crypto = require('crypto');
+var crypto = require('crypto');
 var helmet = require('helmet');
 var express = require('express');
 var http = require('http');
@@ -40,13 +39,8 @@ var rateLimiter = rateLimit({
     standardHeaders: true, // add the `RateLimit-*` headers to the response
     legacyHeaders: false, // remove the `X-RateLimit-*` headers from the response
 })
+
 // all environments
-
-// var limiter = {
-//     max: 10, // 5 requests
-//     period: 5 * 60 * 1000, // per minute (60 seconds)
-// }
-
 app.use(helmet())
 app.set('port', process.env.PORT || 3001);
 app.engine('ejs', ejsEngine);
@@ -101,7 +95,7 @@ app.locals.marked = marked;
 if (app.get('env') === 'development') {
     app.use(errorHandler());
 }
-//
+// comentat pt ca nu e folosit token la nimic altceva in cod decat ca sa prinda o vulnerabilitate
 // var token = process.env.TOKEN;
 // console.log('token: ' + token);
 

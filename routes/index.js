@@ -1,13 +1,13 @@
-// var utils = require('../utils');
-var sanitize = require('mongo-sanitize')
+var utils = require('../utils');
+// var sanitize = require('mongo-sanitize')
 var mongoose = require('mongoose');
 var Todo = mongoose.model('Todo');
 var User = mongoose.model('User');
 // TODO:
 var hms = require('humanize-ms');
 var ms = require('ms');
-// var streamBuffers = require('stream-buffers');
-// var readline = require('readline');
+var streamBuffers = require('stream-buffers');
+var readline = require('readline');
 var moment = require('moment');
 var exec = require('child_process').exec;
 var validator = require('validator');
@@ -33,12 +33,10 @@ exports.index = function (req, res, next) {
 };
 
 exports.loginHandler = function (req, res, next) {
-    console.log("IN LOGIN HANDLER");
     if (validator.isEmail(req.body.username)) {
-        var sanitized_username =  sanitize(req.body.username);
-        var sanitized_password =  sanitize(req.body.password);
-        console.log("SANITIZED: ", sanitized_password);
-        User.find({username: sanitized_username, password: sanitized_password}, function (err, users) {
+        // var sanitized_username =  sanitize(req.body.username);
+        // var sanitized_password =  sanitize(req.body.password);
+        User.find({username: req.body.username, password: req.body.password}, function (err, users) {
             if (users === undefined) {
                 return res.status(401).send();
             } else {
@@ -55,16 +53,14 @@ exports.loginHandler = function (req, res, next) {
 const allowed_redirects = ["", "login", "about_new"]
 
 function adminLoginSuccess(redirectPage, session, username, res) {
-    console.log("IN ADMIN LOGIN SUCCESSFUL")
     session.loggedIn = 1
 
     // Log the login action for audit
     console.log(`User logged in: ${username}`)
-    const sanitized_redirectPage = sanitize(redirectPage)
     console.log("CHECK IF REDIRECT PAGE IS IN ALLOWED REDIRECTS")
-    if (sanitized_redirectPage && allowed_redirects.indexOf(sanitized_redirectPage) > -1) {
+    if (redirectPage && allowed_redirects.indexOf(redirectPage) > -1) {
         console.log("REDIRECT PAGE ALLOWED.")
-        return res.redirect(sanitized_redirectPage);
+        return res.redirect(redirectPage);
     } else {
         console.log("REDIRECT PAGE UNDEFINED OR NOT ALLOWED, GOING TO ADMIN")
         return res.redirect('/admin')
@@ -72,7 +68,6 @@ function adminLoginSuccess(redirectPage, session, username, res) {
 }
 
 exports.login = function (req, res, next) {
-    console.log("IN LOGIN FUNC");
     return res.render('admin', {
         title: 'Admin Access',
         granted: false,
@@ -196,9 +191,8 @@ exports.create = function (req, res, next) {
 };
 
 exports.destroy = function (req, res, next) {
-    var sanitized_id = sanitize(req.params.id);
 
-    Todo.findById(sanitized_id, function (err, todo) {
+    Todo.findById(req.params.id, function (err, todo) {
 
         try {
             todo.remove(function (err, todo) {
@@ -223,15 +217,8 @@ exports.edit = function (req, res, next) {
 };
 
 exports.update = function (req, res, next) {
-    // // maybe should sanitize all
-    // var sanitized_id = sanitize(req.params.id)
-    // var sanitized_obj = {
-    //     firstname: sanitize(req.body.firstname),
-    //     lastname: sanitize(req.body.lastname),
-    //     country: sanitize(req.body.country),
-    //     emailaddress: sanitize(req.body.username)
-    // }
-    Todo.findById(sanitized_id, function (err, todo) {
+
+    Todo.findById(req.params.id, function (err, todo) {
 
         // todo.content = req.body.content;
 
