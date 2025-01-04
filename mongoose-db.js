@@ -1,5 +1,6 @@
+require('dotenv').config({path: '../.env'});
+
 var mongoose = require('mongoose');
-var cfenv = require("cfenv");
 var Schema = mongoose.Schema;
 
 var Todo = new Schema({
@@ -17,28 +18,28 @@ var User = new Schema({
 mongoose.model('User', User);
 
 // CloudFoundry env vars
-var mongoCFUri = cfenv.getAppEnv().getServiceURL('goof-mongo');
-console.log(JSON.stringify(cfenv.getAppEnv()));
+// var mongoCFUri = cfenv.getAppEnv().getServiceURL('goof-mongo');
+// console.log(JSON.stringify(cfenv.getAppEnv()));
 
 // Default Mongo URI is local
-const DOCKER = process.env.DOCKER
-if (DOCKER === '1') {
-  var mongoUri = 'mongodb://goof-mongo/express-todo';
-} else {
-  var mongoUri = 'mongodb://localhost/express-todo';
-}
+// const DOCKER = process.env.DOCKER
+// if (DOCKER === '1') {
+//   var mongoUri = 'mongodb://goof-mongo/express-todo';
+// } else {
+  var mongoUri = 'mongodb://127.0.0.1/express-todo';
+// }
 
 
-// CloudFoundry Mongo URI
-if (mongoCFUri) {
-  mongoUri = mongoCFUri;
-} else if (process.env.MONGOLAB_URI) {
-  // Generic (plus Heroku) env var support
-  mongoUri = process.env.MONGOLAB_URI;
-} else if (process.env.MONGODB_URI) {
-  // Generic (plus Heroku) env var support
-  mongoUri = process.env.MONGODB_URI;
-}
+// // CloudFoundry Mongo URI
+// if (mongoCFUri) {
+//   mongoUri = mongoCFUri;
+// } else if (process.env.MONGOLAB_URI) {
+//   // Generic (plus Heroku) env var support
+//   mongoUri = process.env.MONGOLAB_URI;
+// } else if (process.env.MONGODB_URI) {
+//   // Generic (plus Heroku) env var support
+//   mongoUri = process.env.MONGODB_URI;
+// }
 
 console.log("Using Mongo URI " + mongoUri);
 
@@ -49,7 +50,7 @@ User.find({ username: 'admin@snyk.io' }).exec(function (err, users) {
   console.log(users);
   if (users.length === 0) {
     console.log('no admin');
-    new User({ username: 'admin@snyk.io', password: 'SuperSecretPassword' }).save(function (err, user, count) {
+    new User({ username: process.env.ADMIN_UN, password: process.env.ADMIN_PWD }).save(function (err, user, count) {
       if (err) {
         console.log('error saving admin user');
       }
