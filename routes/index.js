@@ -11,6 +11,8 @@ var readline = require('readline');
 var moment = require('moment');
 var exec = require('child_process').exec;
 var validator = require('validator');
+const rateLimit = require('express-rate-limit');  // Rate limiting library
+
 
 // zip-slip
 var fileType = require('file-type');
@@ -34,9 +36,14 @@ exports.index = function (req, res, next) {
 
 exports.loginHandler = function (req, res, next) {
     if (validator.isEmail(req.body.username)) {
-        // var sanitized_username =  sanitize(req.body.username);
-        // var sanitized_password =  sanitize(req.body.password);
-        User.find({username: req.body.username, password: req.body.password}, function (err, users) {
+    let username = String(req.params.username)
+    let password = String(req.params.password)
+
+    let query = { 
+        username : username,
+        password:password
+    }
+        User.find({username: query.username, password:query.password}, function (err, users) {
             if (users === undefined) {
                 return res.status(401).send();
             } else {
@@ -155,47 +162,97 @@ function parse(todo) {
     return t;
 }
 
+
+// Apply rate limiting to the create endpoint to prevent overwhelming the system
+const createRateLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute (60 seconds)
+    max: 2, // Limit to 5 requests per minute
+    message: "Too many requests, please try again later.",
+});
+
+// Apply the rate limiter to the create route
 exports.create = function (req, res, next) {
-    // console.log('req.body: ' + JSON.stringify(req.body));
+    // Apply the rate limiter
+    createRateLimiter(req, res, function () {
+        console.log('req.body: ' + JSON.stringify(req.body));
 
-    var item = req.body.content;
-    var imgRegex = /\!\[alt text\]\((http.*)\s\".*/;
-    if (typeof (item) == 'string' && item.match(imgRegex)) {
-        var url = item.match(imgRegex)[1];
-        console.log('found img: ' + url);
+        var item = req.body.content;
+        var imgRegex = /\!\[alt text\]\((http.*)\s\".*/;
 
-        exec('identify ' + url, function (err, stdout, stderr) {
-            console.log(err);
-            if (err !== null) {
-                console.log('Error (' + err + '):' + stderr);
-            }
+        // Ensure image URL matches the pattern before calling external resources
+        if (typeof (item) === 'string' && item.match(imgRegex)) {
+            var url = item.match(imgRegex)[1];
+            console.log('found img: ' + url);
+
+            // Apply rate limiter to external command to prevent overuse
+            exec('identify ' + url, function (err, stdout, stderr) {
+                if (err) {
+                    console.log('Error (' + err + '): ' + stderr);
+                    res.status(500).send('Error processing image.');
+                    return;
+                }
+                console.log('Image processed successfully');
+            });
+
+        } else {
+            item = parse(item); // Assuming parse is a function you’ve defined
+        }
+
+        new Todo({
+            content: item + "dd31", // Example of modifying item before saving
+            updated_at: Date.now(),
+        }).save(function (err, todo, count) {
+            if (err) return next(err);
+
+            res.setHeader('Location', '/');
+            res.status(302).send(todo.content.toString('base64'));
         });
-
-    } else {
-        item = parse(item);
-    }
-
-    new Todo({
-        content: item,
-        updated_at: Date.now(),
-    }).save(function (err, todo, count) {
-        if (err) return next(err);
-
-        /*
-        res.setHeader('Data', todo.content.toString('base64'));
-        res.redirect('/');
-        */
-
-        res.setHeader('Location', '/');
-        res.status(302).send(todo.content.toString('base64'));
-
-        // res.redirect('/#' + todo.content.toString('base64'));
     });
 };
 
-exports.destroy = function (req, res, next) {
 
-    Todo.findById(req.params.id, function (err, todo) {
+// exports.create = function (req, res, next) {
+//     console.log('req.body: ' + JSON.stringify(req.body));
+
+//     var item = req.body.content;
+//     var imgRegex = /\!\[alt text\]\((http.*)\s\".*/;
+//     if (typeof (item) == 'string' && item.match(imgRegex)) {
+//         var url = item.match(imgRegex)[1];
+//         console.log('found img: ' + url);
+
+//         exec('identify ' + url, function (err, stdout, stderr) {
+//             console.log(err);
+//             if (err !== null) {
+//                 console.log('Error (' + err + '):' + stderr);
+//             }
+//         });
+
+//     } else {
+//         item = parse(item);
+//     }
+
+//     new Todo({
+//         content: item + "d",
+//         updated_at: Date.now(),
+//     }).save(function (err, todo, count) {
+//         if (err) return next(err);
+
+//         /*
+//         res.setHeader('Data', todo.content.toString('base64'));
+//         res.redirect('/');
+//         */
+
+//         res.setHeader('Location', '/');
+//         res.status(302).send(todo.content.toString('base64'));
+
+//         // res.redirect('/#' + todo.content.toString('base64'));
+//     });
+// };
+
+exports.destroy = function (req, res, next) {
+    let id = String(req.params.id)
+    let query = { id : id}
+    Todo.findById(query.id, function (err, todo) {
 
         try {
             todo.remove(function (err, todo) {
@@ -206,6 +263,8 @@ exports.destroy = function (req, res, next) {
         }
     });
 };
+
+
 
 exports.edit = function (req, res, next) {
     Todo.find({}).sort('-updated_at').exec(function (err, todos) {
@@ -220,19 +279,21 @@ exports.edit = function (req, res, next) {
 };
 
 exports.update = function (req, res, next) {
+    let id = String(req.params.id)
+    let query = { id : id}
+    Todo.findById(query.id, function (err, todo) {
 
-    Todo.findById(req.params.id, function (err, todo) {
-
-        // todo.content = req.body.content;
-
+        todo.content = req.body.content; // Add validation if needed
         todo.updated_at = Date.now();
-        todo.save(function (err, todo, count) {
+
+        todo.save(function (err) {
             if (err) return next(err);
 
             res.redirect('/');
         });
     });
 };
+
 
 // ** express turns the cookie key to lowercase **
 exports.current_user = function (req, res, next) {
@@ -245,6 +306,7 @@ function isBlank(str) {
 }
 
 exports.import = function (req, res, next) {
+    createRateLimiter(req, res, function () {
     if (!req.files) {
         res.send('No files were uploaded.');
         return;
@@ -299,16 +361,19 @@ exports.import = function (req, res, next) {
     });
 
     res.redirect('/');
+});
 };
 
 exports.about_new = function (req, res, next) {
     console.log(JSON.stringify(req.query));
+    createRateLimiter(req, res, function () {
     return res.render("about_new.dust",
         {
-            title: 'Patch TODO List',
+            title: 'Patch TODO List 2',
             subhead: 'Vulnerabilities at their best',
             device: req.query.device
         });
+    });
 };
 
 // Prototype Pollution
