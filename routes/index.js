@@ -50,22 +50,25 @@ exports.loginHandler = function (req, res, next) {
         return res.status(401).send();
     }
 };
-const allowed_redirects = ["", "login", "about_new"]
+const allowed_redirects = ["/", "/login", "/about_new"]; // List of allowed relative URLs
 
 function adminLoginSuccess(redirectPage, session, username, res) {
-    session.loggedIn = 1
+    session.loggedIn = 1;
 
     // Log the login action for audit
-    console.log(`User logged in: ${username}`)
-    console.log("CHECK IF REDIRECT PAGE IS IN ALLOWED REDIRECTS")
-    if (redirectPage && allowed_redirects.indexOf(redirectPage) > -1) {
-        console.log("REDIRECT PAGE ALLOWED.")
-        return res.redirect(redirectPage);
+    console.log(`User logged in: ${username}`);
+    console.log("CHECK IF REDIRECT PAGE IS IN ALLOWED LIST");
+
+    // Validate the redirectPage against allowed_redirects
+    if (redirectPage && allowed_redirects.includes(redirectPage)) {
+        console.log("REDIRECT PAGE ALLOWED.");
+        return res.redirect(redirectPage); // Safe redirection
     } else {
-        console.log("REDIRECT PAGE UNDEFINED OR NOT ALLOWED, GOING TO ADMIN")
-        return res.redirect('/admin')
+        console.log("REDIRECT PAGE UNDEFINED OR NOT ALLOWED");
+        return res.redirect('/admin'); // Default safe redirection
     }
 }
+
 
 exports.login = function (req, res, next) {
     return res.render('admin', {

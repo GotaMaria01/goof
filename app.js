@@ -27,7 +27,11 @@ var fileUpload = require('express-fileupload');
 // var dust = require('dustjs-linkedin');
 var dustHelpers = require('dustjs-helpers');
 var cons = require('consolidate');
-const hbs = require('hbs')
+const hbs = require('hbs');
+var cookieParser = require('cookie-parser');
+var csrf = require('csurf');
+var csrfProtection = csrf({ cookie: true });
+var parseForm = bodyParser.urlencoded({ extended: false });
 
 var app = express();
 var routes = require('./routes');
@@ -63,21 +67,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(fileUpload());
 app.use(rateLimiter);
+app.use(cookieParser())
+
 
 // Routes
 app.use(routes.current_user);
 app.get('/', routes.index);
-app.get('/login', routes.login);
-app.post('/login', routes.loginHandler);
+
+app.get('/login', routes.login, );
+
+
+app.post('/login', csrfProtection , routes.loginHandler);
 app.get('/admin', routes.isLoggedIn, routes.admin);
 app.get('/account_details', routes.isLoggedIn, routes.get_account_details);
-app.post('/account_details', routes.isLoggedIn, routes.save_account_details);
+app.post('/account_details', csrfProtection, routes.isLoggedIn, routes.save_account_details);
 app.get('/logout', routes.logout);
-app.post('/create', routes.create);
+app.post('/create', csrfProtection, routes.create);
 app.get('/destroy/:id', routes.destroy);
 app.get('/edit/:id', routes.edit);
-app.post('/update/:id', routes.update);
-app.post('/import', routes.import);
+app.post('/update/:id', csrfProtection, routes.update);
+app.post('/import', csrfProtection, routes.import);
 app.get('/about_new', routes.about_new);
 app.get('/chat', routes.chat.get);
 app.put('/chat', routes.chat.add);

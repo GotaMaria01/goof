@@ -1,4 +1,4 @@
-require('dotenv').config({path: '../.env'});
+require('dotenv').config({path: '../s.env'});
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
