@@ -2,7 +2,6 @@ require('dotenv').config({path: '../.env'});
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-
 var Todo = new Schema({
     content: Buffer,
     updated_at: Date,
@@ -18,8 +17,6 @@ var User = new Schema({
 mongoose.model('User', User);
 
 var mongoUri = 'mongodb://127.0.0.1/express-todo';
-
-console.log("Using Mongo URI " + mongoUri);
 
 mongoose.connect(mongoUri);
 

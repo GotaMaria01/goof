@@ -16,13 +16,4 @@ module.exports = {
 
     return str;
   },
-
-  forbidden : function ( res ){
-    var body       = 'Forbidden';
-    res.statusCode = 403;
-
-    res.setHeader( 'Content-Type', 'text/plain' );
-    res.setHeader( 'Content-Length', body.length );
-    res.end( body );
-  }
 };

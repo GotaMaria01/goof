@@ -1,17 +1,10 @@
-/**
- * Module dependencies.
- */
-
 // mongoose setup
 require('./mongoose-db');
-// require('./typeorm-db');
 
 var st = require('st');
 const rateLimit = require('express-rate-limit')
-var crypto = require('crypto');
 var helmet = require('helmet');
 var express = require('express');
-var http = require('http');
 var https = require('https');
 var fs = require('fs')
 var path = require('path');
@@ -21,13 +14,12 @@ var session = require('express-session')
 var methodOverride = require('method-override');
 var logger = require('morgan');
 var errorHandler = require('errorhandler');
-// var optional = require('optional');
 var marked = require('marked');
 var fileUpload = require('express-fileupload');
-// var dust = require('dustjs-linkedin');
 var dustHelpers = require('dustjs-helpers');
 var cons = require('consolidate');
 const hbs = require('hbs');
+
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var csrfProtection = csrf({ cookie: true });
@@ -62,14 +54,10 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(fileUpload());
 app.use(cookieParser())
 
-
 // Routes
 app.use(routes.current_user);
 app.get('/', routes.index);
-
 app.get('/login', routes.login, );
-
-
 app.post('/login', csrfProtection , routes.loginHandler);
 app.get('/admin', routes.isLoggedIn, routes.admin);
 app.get('/account_details', routes.isLoggedIn, routes.get_account_details);

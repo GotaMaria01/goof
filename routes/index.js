@@ -1,14 +1,13 @@
-var utils = require('../utils');
 var mongoose = require('mongoose');
 var Todo = mongoose.model('Todo');
 var User = mongoose.model('User');
+
 var hms = require('humanize-ms');
 var ms = require('ms');
 var moment = require('moment');
 var exec = require('child_process').exec;
 var validator = require('validator');
 const rateLimit = require('express-rate-limit');  // Rate limiting library
-
 
 // zip-slip
 var fileType = require('file-type');
@@ -53,6 +52,7 @@ exports.loginHandler = function (req, res, next) {
         return res.status(401).send();
     }
 };
+
 const allowed_redirects = ["/", "/login", "/about_new"]; // List of allowed relative URLs
 
 function adminLoginSuccess(redirectPage, session, username, res) {
@@ -71,7 +71,6 @@ function adminLoginSuccess(redirectPage, session, username, res) {
         return res.redirect('/admin'); // Default safe redirection
     }
 }
-
 
 exports.login = function (req, res, next) {
     return res.render('admin', {
