@@ -37,12 +37,6 @@ var app = express();
 var routes = require('./routes');
 var routesUsers = require('./routes/users.js')
 
-var rateLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    limit: 100, // each IP can make up to 50 requests per `windowsMs` (5 minutes)
-    standardHeaders: true, // add the `RateLimit-*` headers to the response
-    legacyHeaders: false, // remove the `X-RateLimit-*` headers from the response
-})
 
 // all environments
 app.use(helmet())
@@ -66,7 +60,6 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(fileUpload());
-app.use(rateLimiter);
 app.use(cookieParser())
 
 
@@ -104,9 +97,6 @@ app.locals.marked = marked;
 if (app.get('env') === 'development') {
     app.use(errorHandler());
 }
-// comentat pt ca nu e folosit token la nimic altceva in cod decat ca sa prinda o vulnerabilitate
-// var token = process.env.TOKEN;
-// console.log('token: ' + token);
 
 var key = fs.readFileSync('../private-key.pem');
 var certificate = fs.readFileSync('../certificate.pem');

@@ -1,13 +1,9 @@
 var utils = require('../utils');
-// var sanitize = require('mongo-sanitize')
 var mongoose = require('mongoose');
 var Todo = mongoose.model('Todo');
 var User = mongoose.model('User');
-// TODO:
 var hms = require('humanize-ms');
 var ms = require('ms');
-var streamBuffers = require('stream-buffers');
-var readline = require('readline');
 var moment = require('moment');
 var exec = require('child_process').exec;
 var validator = require('validator');
@@ -166,7 +162,7 @@ function parse(todo) {
 // Apply rate limiting to the create endpoint to prevent overwhelming the system
 const createRateLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute (60 seconds)
-    max: 2, // Limit to 5 requests per minute
+    max: 5, // Limit to 5 requests per minute
     message: "Too many requests, please try again later.",
 });
 
@@ -210,45 +206,6 @@ exports.create = function (req, res, next) {
     });
 };
 
-
-// exports.create = function (req, res, next) {
-//     console.log('req.body: ' + JSON.stringify(req.body));
-
-//     var item = req.body.content;
-//     var imgRegex = /\!\[alt text\]\((http.*)\s\".*/;
-//     if (typeof (item) == 'string' && item.match(imgRegex)) {
-//         var url = item.match(imgRegex)[1];
-//         console.log('found img: ' + url);
-
-//         exec('identify ' + url, function (err, stdout, stderr) {
-//             console.log(err);
-//             if (err !== null) {
-//                 console.log('Error (' + err + '):' + stderr);
-//             }
-//         });
-
-//     } else {
-//         item = parse(item);
-//     }
-
-//     new Todo({
-//         content: item + "d",
-//         updated_at: Date.now(),
-//     }).save(function (err, todo, count) {
-//         if (err) return next(err);
-
-//         /*
-//         res.setHeader('Data', todo.content.toString('base64'));
-//         res.redirect('/');
-//         */
-
-//         res.setHeader('Location', '/');
-//         res.status(302).send(todo.content.toString('base64'));
-
-//         // res.redirect('/#' + todo.content.toString('base64'));
-//     });
-// };
-
 exports.destroy = function (req, res, next) {
     let id = String(req.params.id)
     let query = { id : id}
@@ -263,8 +220,6 @@ exports.destroy = function (req, res, next) {
         }
     });
 };
-
-
 
 exports.edit = function (req, res, next) {
     Todo.find({}).sort('-updated_at').exec(function (err, todos) {
