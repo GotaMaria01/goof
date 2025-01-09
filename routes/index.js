@@ -1,12 +1,9 @@
-var utils = require('../utils');
 var mongoose = require('mongoose');
 var Todo = mongoose.model('Todo');
 var User = mongoose.model('User');
-// TODO:
+
 var hms = require('humanize-ms');
 var ms = require('ms');
-var streamBuffers = require('stream-buffers');
-var readline = require('readline');
 var moment = require('moment');
 var exec = require('child_process').exec;
 var validator = require('validator');
@@ -150,7 +147,6 @@ function parse(todo) {
 }
 
 exports.create = function (req, res, next) {
-  // console.log('req.body: ' + JSON.stringify(req.body));
 
   var item = req.body.content;
   var imgRegex = /\!\[alt text\]\((http.*)\s\".*/;

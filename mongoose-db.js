@@ -16,31 +16,7 @@ var User = new Schema({
 
 mongoose.model('User', User);
 
-// CloudFoundry env vars
-var mongoCFUri = cfenv.getAppEnv().getServiceURL('goof-mongo');
-console.log(JSON.stringify(cfenv.getAppEnv()));
-
-// Default Mongo URI is local
-const DOCKER = process.env.DOCKER
-if (DOCKER === '1') {
-  var mongoUri = 'mongodb://goof-mongo/express-todo';
-} else {
-  var mongoUri = 'mongodb://localhost/express-todo';
-}
-
-
-// CloudFoundry Mongo URI
-if (mongoCFUri) {
-  mongoUri = mongoCFUri;
-} else if (process.env.MONGOLAB_URI) {
-  // Generic (plus Heroku) env var support
-  mongoUri = process.env.MONGOLAB_URI;
-} else if (process.env.MONGODB_URI) {
-  // Generic (plus Heroku) env var support
-  mongoUri = process.env.MONGODB_URI;
-}
-
-console.log("Using Mongo URI " + mongoUri);
+var mongoUri = 'mongodb://127.0.0.1/express-todo';
 
 mongoose.connect(mongoUri);
 
