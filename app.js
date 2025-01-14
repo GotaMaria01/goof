@@ -60,8 +60,6 @@ app.get('/', routes.index);
 app.get('/login', routes.login, );
 app.post('/login', csrfProtection , routes.loginHandler);
 app.get('/admin', routes.isLoggedIn, routes.admin);
-app.get('/account_details', routes.isLoggedIn, routes.get_account_details);
-app.post('/account_details', csrfProtection, routes.isLoggedIn, routes.save_account_details);
 app.get('/logout', routes.logout);
 app.post('/create', csrfProtection, routes.create);
 app.get('/destroy/:id', routes.destroy);
@@ -69,10 +67,6 @@ app.get('/edit/:id', routes.edit);
 app.post('/update/:id', csrfProtection, routes.update);
 app.post('/import', csrfProtection, routes.import);
 app.get('/about_new', routes.about_new);
-app.get('/chat', routes.chat.get);
-app.put('/chat', routes.chat.add);
-app.delete('/chat', routes.chat.delete);
-app.use('/users', routesUsers)
 
 // Static
 app.use(st({path: './public', url: '/public'}));
